@@ -1,6 +1,8 @@
 const metadata = {
   "contabilizadas_mesas": 88866,
   "pendientes_mesas": 3900,
+  "pendientes_escrutinio_mesas": 2363,
+  "enviadas_jee_mesas": 1537,
   "pct_contabilizado": 95.79587348813142
 };
 const departments = [

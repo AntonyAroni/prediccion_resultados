@@ -320,10 +320,19 @@ function initDiscrepancies() {
 window.onload = function() {
     // Fill metadata headers
     if(typeof metadata !== 'undefined') {
+        let total_mesas = 92766;
         document.getElementById('valContabilizadas').innerText = formatNum(metadata.contabilizadas_mesas);
-        document.getElementById('valPctContabilizadas').innerText = `${metadata.pct_contabilizado.toFixed(2)}% de actas computadas ('C')`;
-        document.getElementById('valPendientes').innerText = formatNum(metadata.pendientes_mesas);
-        document.getElementById('valPctPendientes').innerText = `${(100 - metadata.pct_contabilizado).toFixed(2)}% pendientes de resolución`;
+        document.getElementById('valPctContabilizadas').innerText = `${metadata.pct_contabilizado.toFixed(2)}% computadas ('C')`;
+        
+        let valP = metadata.pendientes_escrutinio_mesas || 0;
+        let pctP = (valP / total_mesas * 100).toFixed(2);
+        document.getElementById('valPendientesEscrutinio').innerText = formatNum(valP);
+        document.getElementById('valPctPendientesEscrutinio').innerText = `${pctP}% por procesar ('P')`;
+        
+        let valE = metadata.enviadas_jee_mesas || 0;
+        let pctE = (valE / total_mesas * 100).toFixed(2);
+        document.getElementById('valEnviadasJEE').innerText = formatNum(valE);
+        document.getElementById('valPctEnviadasJEE').innerText = `${pctE}% enviadas al JEE ('E')`;
     }
 
     initCharts();
