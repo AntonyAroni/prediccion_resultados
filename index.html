@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Electoral 2026 - Análisis y Simulación</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Main Style -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="wrapper">
+        <header>
+            <h1>Simulador y Dashboard Electoral 2026</h1>
+            <p class="subtitle">Análisis técnico modular, simulación en tiempo real y estudio detallado del impacto de las actas pendientes y del extranjero.</p>
+        </header>
+
+        <!-- Winner banner showing dynamic simulation status -->
+        <div id="winnerBanner" class="winner-banner jp-win">
+            Calculando simulación...
+        </div>
+
+        <!-- Main navigation tabs -->
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="switchTab('tab-nacional')">Simulador Principal</button>
+            <button class="nav-tab" onclick="switchTab('tab-analisis')">Análisis de Impacto</button>
+            <button class="nav-tab" onclick="switchTab('tab-regiones')">Desglose Regional</button>
+            <button class="nav-tab" onclick="switchTab('tab-discrepancias')">Auditoría de Datos</button>
+        </div>
+
+        <!-- TAB: NACIONAL (SIMULADOR PRINCIPAL) -->
+        <div id="tab-nacional" class="tab-content active">
+            <div class="summary-grid">
+                <div class="stat-card">
+                    <span class="stat-label">Total de Mesas</span>
+                    <span class="stat-value">92,766</span>
+                    <span class="stat-sub">100% de mesas a nivel nacional y exterior</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Actas Contabilizadas</span>
+                    <span class="stat-value" id="valContabilizadas" style="color: #10b981;">0</span>
+                    <span class="stat-sub" id="valPctContabilizadas">0% de actas computadas ('C')</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Actas Pendientes</span>
+                    <span class="stat-value" id="valPendientes" style="color: #f59e0b;">0</span>
+                    <span class="stat-sub" id="valPctPendientes">0% pendientes de resolución</span>
+                </div>
+            </div>
+
+            <div class="main-grid">
+                <!-- Simulation Controls (Left Column) -->
+                <div class="card sim-card">
+                    <h2 class="sim-title">⚙️ Parámetros de Simulación</h2>
+                    
+                    <div class="sim-group">
+                        <div class="sim-label-row">
+                            <span>Participación Nacional</span>
+                            <span id="lblPartNac">74.3%</span>
+                        </div>
+                        <input id="slidePartNac" class="sim-slider" type="range" min="65" max="85" value="74.3" step="0.1" oninput="updateSimulation()">
+                    </div>
+
+                    <div class="sim-group">
+                        <div class="sim-label-row">
+                            <span>Participación Extranjero</span>
+                            <span id="lblPartExt">32.5%</span>
+                        </div>
+                        <input id="slidePartExt" class="sim-slider" type="range" min="20" max="80" value="32.5" step="0.1" oninput="updateSimulation()">
+                        <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 2px;">(Equivale a un <span id="lblAusentismoExt">67.5</span>% de ausentismo)</div>
+                    </div>
+
+                    <div class="sim-group">
+                        <div class="sim-label-row">
+                            <span>Voto Fuerza Popular en Extranjero</span>
+                            <span id="lblFpExt">62%</span>
+                        </div>
+                        <input id="slideFpExt" class="sim-slider" type="range" min="50" max="75" value="62" step="0.5" oninput="updateSimulation()">
+                    </div>
+
+                    <div class="sim-group">
+                        <div class="sim-label-row">
+                            <span>Sesgo de Voto Nacional FP (Pendientes)</span>
+                            <span id="lblShiftNac">+0%</span>
+                        </div>
+                        <input id="slideShiftNac" class="sim-slider" type="range" min="-10" max="10" value="0" step="0.5" oninput="updateSimulation()">
+                    </div>
+                    
+                    <div class="note-box">
+                        <strong>Nota Técnica:</strong> El rango de participación en el extranjero se amplió hasta permitir un 80% de ausentismo. El Sesgo Nacional FP desplaza la tendencia del voto histórico departamental simulando decisiones favorables en el JEE.
+                    </div>
+                </div>
+
+                <!-- Live Results Chart & Bar (Right Column) -->
+                <div class="card">
+                    <h2 class="card-title">Resultado Proyectado (100%)</h2>
+                    <div class="chart-container">
+                        <canvas id="chartProyectados"></canvas>
+                    </div>
+                    
+                    <div class="h2h-container">
+                        <div class="h2h-bar-container">
+                            <div class="h2h-bar-labels">
+                                <span class="lbl-jp" id="lblValJp">JP: 0 (0.00%)</span>
+                                <span class="lbl-fp" id="lblValFp">FP: 0 (0.00%)</span>
+                            </div>
+                            <div class="h2h-bar">
+                                <div id="barProjJp" class="bar-jp"></div>
+                                <div id="barProjFp" class="bar-fp"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="lblDiffProj" class="diff-box">Diferencia proyectada: <strong>0 votos</strong></div>
+
+                    <div class="results-grid">
+                        <div class="result-box">
+                            <div class="result-label">Votos JP</div>
+                            <div class="result-val jp" id="valProjJp">0</div>
+                            <div class="result-pct" id="valProjPctJp">0%</div>
+                        </div>
+                        <div class="result-box">
+                            <div class="result-label">Votos FP</div>
+                            <div class="result-val fp" id="valProjFp">0</div>
+                            <div class="result-pct" id="valProjPctFp">0%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: ANÁLISIS DE IMPACTO (NEW) -->
+        <div id="tab-analisis" class="tab-content">
+            <div class="main-grid">
+                <!-- Explanatory Panel -->
+                <div class="card analysis-card">
+                    <h2 class="card-title">Análisis de Sensibilidad y Actas Pendientes</h2>
+                    <p class="text-muted">
+                        ¿Qué departamentos definen el resultado de la elección? Esta sección detalla dónde se concentran las actas pendientes (impugnadas/observadas y del exterior) y cómo favorecen a cada candidato bajo la simulación actual.
+                    </p>
+                    <div class="insight-box mt-1">
+                        <h4>🔍 Volumen Crítico</h4>
+                        <p id="txtInsightVolume">Cargando análisis de volumen...</p>
+                    </div>
+                    <div class="insight-box mt-1">
+                        <h4>⚖️ Impacto en Votos Netos</h4>
+                        <p id="txtInsightNet">Cargando análisis de impacto neto...</p>
+                    </div>
+                    <div class="insight-box mt-1">
+                        <h4>🔄 Punto de Inflexión</h4>
+                        <p>Dado que la diferencia actual en actas contabilizadas es menor al 0.3%, cualquier departamento que genere un aporte neto mayor a 40,000 votos puede cambiar drásticamente el rumbo de la proyección. Mueve los deslizadores de "Sesgo" y "Voto Extranjero" en la pestaña del Simulador para ver cómo estos gráficos de impacto se alteran en tiempo real.</p>
+                    </div>
+                </div>
+
+                <!-- Charts Column -->
+                <div class="charts-column">
+                    <div class="card">
+                        <h2 class="card-title">Top 10: Electores en Actas Pendientes</h2>
+                        <div class="chart-container-bar">
+                            <canvas id="chartVolumenPendientes"></canvas>
+                        </div>
+                    </div>
+                    <div class="card mt-1">
+                        <h2 class="card-title">Impacto Neto Proyectado (+Votos JP / +Votos FP)</h2>
+                        <div class="chart-container-bar">
+                            <canvas id="chartImpactoNeto"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: REGIONES -->
+        <div id="tab-regiones" class="tab-content">
+            <div class="card">
+                <h2 class="card-title">Desglose Regional Proyectado (Votos Reales + Proyección)</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Ubigeo</th>
+                                <th>Región</th>
+                                <th>Votos Reales (JP / FP)</th>
+                                <th>Actas (Pnd / Total)</th>
+                                <th>Proyección Pnd (JP / FP)</th>
+                                <th>Total Proyectado (JP / FP)</th>
+                                <th>Ganador</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBodyRegiones">
+                            <!-- Populated dynamically by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: DISCREPANCIAS / AUDITORÍA -->
+        <div id="tab-discrepancias" class="tab-content">
+            <div class="card discrepancy-card">
+                <h2 class="card-title">Auditoría vs Copia de Resultados Manual (DATA_PERU.txt)</h2>
+                <p class="text-muted mb-1">
+                    Cruce del conteo oficial de la base de datos extraída contra los valores de control en <strong>DATA_PERU.txt</strong>.
+                </p>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Región</th>
+                                <th>JP (DB)</th>
+                                <th>JP (Txt)</th>
+                                <th>Diferencia JP</th>
+                                <th>FP (DB)</th>
+                                <th>FP (Txt)</th>
+                                <th>Diferencia FP</th>
+                                <th>Estado Auditoría</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBodyDiscrepancias">
+                            <!-- Populated dynamically by JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="audit-note">
+                    <strong>Nota de Auditoría:</strong> El archivo manual <strong>DATA_PERU.txt</strong> coincide plenamente con los datos extraídos en todos los departamentos que no han registrado actualizaciones recientes.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
