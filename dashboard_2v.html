@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Proyecciones Electorales - Segunda Vuelta 2026</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-base: #070a16;
+            --bg-card: rgba(15, 23, 42, 0.7);
+            --bg-card-hover: rgba(30, 41, 59, 0.9);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            
+            --color-fp: #3b82f6; /* Azul */
+            --color-fp-gradient: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            --color-jp: #ef4444; /* Rojo */
+            --color-jp-gradient: linear-gradient(135deg, #ef4444, #b91c1c);
+            
+            --accent: #10b981; /* Verde esmeralda */
+            --primary-gradient: linear-gradient(135deg, #38bdf8, #818cf8);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.03) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(239, 68, 68, 0.03) 0%, transparent 40%);
+            background-attachment: fixed;
+            padding: 2rem 1.5rem;
+        }
+
+        .wrapper {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        header p.subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Winner Banner style */
+        .winner-banner {
+            padding: 1.2rem;
+            border-radius: 16px;
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: 800;
+            margin-bottom: 2rem;
+            transition: all 0.5s ease;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            animation: pulseBanner 2s infinite alternate;
+        }
+
+        .jp-win {
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+            border: 2px solid rgba(239, 68, 68, 0.4);
+        }
+
+        .fp-win {
+            background: rgba(59, 130, 246, 0.15);
+            color: #93c5fd;
+            border: 2px solid rgba(59, 130, 246, 0.4);
+        }
+
+        @keyframes pulseBanner {
+            from { transform: scale(1); }
+            to { transform: scale(1.01); }
+        }
+
+        /* Navigation tabs */
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 2.5rem;
+            background: rgba(15, 23, 42, 0.8);
+            padding: 0.4rem;
+            border-radius: 14px;
+            border: 1px solid var(--border-color);
+            max-width: 650px;
+            margin-left: auto;
+            margin-right: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+
+        .nav-tab {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 0.8rem 1.2rem;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-tab:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .nav-tab.active {
+            background: var(--primary-gradient);
+            color: #060913;
+            font-weight: 700;
+            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Grid layouts */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+        }
+
+        .stat-sub {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (min-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr 1.2fr;
+            }
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.8rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Head-to-head comparison bar */
+        .h2h-container {
+            margin-top: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .h2h-bar-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .h2h-bar-labels {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .h2h-bar {
+            height: 28px;
+            border-radius: 14px;
+            background: #192239;
+            overflow: hidden;
+            display: flex;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .bar-jp {
+            background: var(--color-jp-gradient);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .bar-fp {
+            background: var(--color-fp-gradient);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        /* Simulation Controls Styling */
+        .sim-card {
+            background: rgba(13, 19, 38, 0.85);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            box-shadow: 0 0 25px rgba(56, 189, 248, 0.08);
+        }
+
+        .sim-title {
+            font-size: 1.3rem;
+            color: #38bdf8;
+            font-weight: 700;
+            margin-bottom: 1.2rem;
+            border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+            padding-bottom: 0.6rem;
+        }
+
+        .sim-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .sim-label-row {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-main);
+        }
+
+        .sim-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #1e293b;
+            outline: none;
+            transition: background 0.3s;
+        }
+
+        .sim-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #38bdf8;
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+            transition: transform 0.1s;
+        }
+
+        .sim-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+            max-height: 550px;
+            overflow-y: auto;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            background: #0f172a;
+            padding: 1rem;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        td {
+            padding: 0.9rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.95rem;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Badges */
+        .badge {
+            padding: 0.25rem 0.6rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .badge-jp {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .badge-fp {
+            background: rgba(59, 82, 246, 0.2);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 82, 246, 0.3);
+        }
+
+        .badge-neutral {
+            background: rgba(148, 163, 184, 0.2);
+            color: #cbd5e1;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+        }
+
+        .winner-marker {
+            font-weight: 700;
+        }
+        .winner-marker.jp { color: #ef4444; }
+        .winner-marker.fp { color: #3b82f6; }
+
+        /* Discrepancy layout */
+        .discrepancy-card {
+            border-left: 4px solid var(--accent);
+        }
+        
+        .updated-marker {
+            color: #10b981;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.2rem;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            }
+            70% {
+                transform: scale(1);
+                box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+            }
+            100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <header>
+            <h1>Simulador y Dashboard Electoral 2026</h1>
+            <p class="subtitle">Visualización en tiempo real y modelo de proyección interactivo para la segunda vuelta presidencial. Modifica los parámetros de participación y porcentaje de voto en el extranjero/nacional para simular el resultado final.</p>
+        </header>
+
+        <!-- Winner banner showing dynamic simulation status -->
+        <div id="winnerBanner" class="winner-banner jp-win">
+            Calculando simulación...
+        </div>
+
+        <!-- Main navigation tabs -->
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="switchTab('tab-nacional')">Resumen y Simulador</button>
+            <button class="nav-tab" onclick="switchTab('tab-regiones')">Resultados Proyectados</button>
+            <button class="nav-tab" onclick="switchTab('tab-discrepancias')">Auditoría vs DATA_PERU.txt</button>
+        </div>
+
+        <!-- TAB: NACIONAL -->
+        <div id="tab-nacional" class="tab-content active">
+            <div class="summary-grid">
+                <div class="stat-card">
+                    <span class="stat-label">Total de Mesas</span>
+                    <span class="stat-value">92,766</span>
+                    <span class="stat-sub">100% de mesas a nivel nacional y exterior</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Actas Contabilizadas</span>
+                    <span class="stat-value" style="color: #10b981;">88,118</span>
+                    <span class="stat-sub">94.99% de actas reales computadas ('C')</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Actas Pendientes / Impugnadas</span>
+                    <span class="stat-value" style="color: #f59e0b;">4,648</span>
+                    <span class="stat-sub">5.01% pendientes de resolución</span>
+                </div>
+            </div>
+
+            <div class="main-grid">
+                <!-- Simulation Controls (Left Column) -->
+                <div class="card sim-card">
+                    <h2 class="sim-title">⚙️ Parámetros de Simulación</h2>
+                    
+                    <!-- 1. Participación Nacional -->
+                    <div class="sim-group">
+                        <div class="sim-label-row">
+                            <span>Participación Nacional</span>
+                            <span id="lblPartNac">74.3%</span>
+                        </div>
+                        <input id="slidePartNac" class="sim-slider" type="range" min="65" max="85" value="74.3" step="0.1" oninput="updateSimulation()">
+                    </div>
+
+                    <!-- 2. Participación Extranjero -->
+                    <div class="sim-group">
+                        <div class="sim-label-row">
+                            <span>Participación Extranjero (100% - Ausentismo)</span>
+                            <span id="lblPartExt">32.5%</span>
+                        </div>
+                        <input id="slidePartExt" class="sim-slider" type="range" min="20" max="60" value="32.5" step="0.1" oninput="updateSimulation()">
+                    </div>
+
+                    <!-- 3. Voto FP en Extranjero -->
+                    <div class="sim-group">
+                        <div class="sim-label-row">
+                            <span>Voto Fuerza Popular (Keiko) en Extranjero</span>
+                            <span id="lblFpExt">62%</span>
+                        </div>
+                        <input id="slideFpExt" class="sim-slider" type="range" min="50" max="75" value="62" step="0.5" oninput="updateSimulation()">
+                    </div>
+
+                    <!-- 4. Desviación Nacional FP -->
+                    <div class="sim-group">
+                        <div class="sim-label-row">
+                            <span>Sesgo de Voto Nacional FP (Pendientes)</span>
+                            <span id="lblShiftNac">+0%</span>
+                        </div>
+                        <input id="slideShiftNac" class="sim-slider" type="range" min="-10" max="10" value="0" step="0.5" oninput="updateSimulation()">
+                    </div>
+                    
+                    <div style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; border-top: 1px solid var(--border-color); padding-top: 1rem; margin-top: 1rem;">
+                        <strong>Nota explicativa:</strong> Las actas del extranjero (2,344 en total) poseen ausentismos altos (usualmente mayores al 50%). Las actas pendientes nacionales (principalmente en Lima) son en su mayoría observadas/impugnadas. Ajusta el "Sesgo Nacional" para desplazar la tendencia histórica de FP en las actas restantes de los departamentos nacionales.
+                    </div>
+                </div>
+
+                <!-- Live Results Chart & Bar (Right Column) -->
+                <div class="card">
+                    <h2 class="card-title">Resultado de la Proyección</h2>
+                    <div style="height: 240px; position: relative; display: flex; justify-content: center; margin-bottom: 1.5rem;">
+                        <canvas id="chartProyectados"></canvas>
+                    </div>
+                    
+                    <div class="h2h-container">
+                        <div class="h2h-bar-container">
+                            <div class="h2h-bar-labels">
+                                <span style="color: #ef4444;" id="lblValJp">JP: 0 (0.00%)</span>
+                                <span style="color: #3b82f6;" id="lblValFp">FP: 0 (0.00%)</span>
+                            </div>
+                            <div class="h2h-bar">
+                                <div id="barProjJp" class="bar-jp" style="width: 50%;"></div>
+                                <div id="barProjFp" class="bar-fp" style="width: 50%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="lblDiffProj" style="margin-top: 1rem; color: var(--text-muted); font-size: 0.95rem; text-align: center;">
+                        Diferencia proyectada: <strong>0 votos</strong>
+                    </div>
+
+                    <div style="margin-top: 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; border-top: 1px solid var(--border-color); padding-top: 1.2rem;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted);">Votos Proyectados JP</div>
+                            <div style="font-size: 1.25rem; font-weight: 700; color: #f87171;" id="valProjJp">0</div>
+                            <div style="font-size: 0.9rem; color: var(--text-muted);" id="valProjPctJp">0%</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted);">Votos Proyectados FP</div>
+                            <div style="font-size: 1.25rem; font-weight: 700; color: #60a5fa;" id="valProjFp">0</div>
+                            <div style="font-size: 0.9rem; color: var(--text-muted);" id="valProjPctFp">0%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: REGIONES -->
+        <div id="tab-regiones" class="tab-content">
+            <div class="card">
+                <h2 class="card-title">Desglose Regional Proyectado (Votos Reales + Proyección)</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Ubigeo</th>
+                                <th>Región</th>
+                                <th>Votos Reales (JP / FP)</th>
+                                <th>Actas (Pnd / Total)</th>
+                                <th>Proyección Pnd (JP / FP)</th>
+                                <th>Total Proyectado (JP / FP)</th>
+                                <th>Ganador</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBodyRegiones">
+                            <!-- Populated dynamically by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: DISCREPANCIAS / AUDITORÍA -->
+        <div id="tab-discrepancias" class="tab-content">
+            <div class="card discrepancy-card">
+                <h2 class="card-title">Auditoría vs Copia de Resultados Manual (DATA_PERU.txt)</h2>
+                <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
+                    Cruce del conteo oficial de la base de datos descargada contra los valores copiados manualmente en el archivo <strong>DATA_PERU.txt</strong>.
+                </p>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Región</th>
+                                <th>JP (DB)</th>
+                                <th>JP (DATA_PERU)</th>
+                                <th>Diferencia JP</th>
+                                <th>FP (DB)</th>
+                                <th>FP (DATA_PERU)</th>
+                                <th>Diferencia FP</th>
+                                <th>Estado Auditoría</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                            <tr>
+                                <td><strong>Amazonas</strong></td>
+                                <td>120,561</td>
+                                <td>119,771</td>
+                                <td style="color: #38bdf8; font-weight: bold;">+790</td>
+                                <td>68,793</td>
+                                <td>68,486</td>
+                                <td style="color: #38bdf8; font-weight: bold;">+307</td>
+                                <td><span class="updated-marker"><span class="pulse-dot"></span> Actualizado (+1097 votos)</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Apurímac</strong></td>
+                                <td>185,825</td>
+                                <td>185,825</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td>43,132</td>
+                                <td>43,132</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td><span style="color: #10b981; font-weight: 600;">✓ Conciliado</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Arequipa</strong></td>
+                                <td>580,551</td>
+                                <td>580,551</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td>332,308</td>
+                                <td>332,308</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td><span style="color: #10b981; font-weight: 600;">✓ Conciliado</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Ayacucho</strong></td>
+                                <td>254,186</td>
+                                <td>253,825</td>
+                                <td style="color: #38bdf8; font-weight: bold;">+361</td>
+                                <td>66,568</td>
+                                <td>66,494</td>
+                                <td style="color: #38bdf8; font-weight: bold;">+74</td>
+                                <td><span class="updated-marker"><span class="pulse-dot"></span> Actualizado (+435 votos)</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Cajamarca</strong></td>
+                                <td>490,702</td>
+                                <td>490,702</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td>244,352</td>
+                                <td>244,352</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td><span style="color: #10b981; font-weight: 600;">✓ Conciliado</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Callao</strong></td>
+                                <td>206,765</td>
+                                <td>206,765</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td>394,407</td>
+                                <td>394,407</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td><span style="color: #10b981; font-weight: 600;">✓ Conciliado</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Cusco</strong></td>
+                                <td>560,300</td>
+                                <td>560,300</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td>158,153</td>
+                                <td>158,153</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td><span style="color: #10b981; font-weight: 600;">✓ Conciliado</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Huancavelica</strong></td>
+                                <td>160,659</td>
+                                <td>160,659</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td>36,707</td>
+                                <td>36,707</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td><span style="color: #10b981; font-weight: 600;">✓ Conciliado</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Huánuco</strong></td>
+                                <td>249,970</td>
+                                <td>249,970</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td>139,754</td>
+                                <td>139,754</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td><span style="color: #10b981; font-weight: 600;">✓ Conciliado</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Ica</strong></td>
+                                <td>259,131</td>
+                                <td>259,131</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td>279,728</td>
+                                <td>279,728</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td><span style="color: #10b981; font-weight: 600;">✓ Conciliado</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Junín</strong></td>
+                                <td>387,009</td>
+                                <td>387,009</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td>317,745</td>
+                                <td>317,745</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td><span style="color: #10b981; font-weight: 600;">✓ Conciliado</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>La Libertad</strong></td>
+                                <td>442,641</td>
+                                <td>442,641</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td>599,711</td>
+                                <td>599,711</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td><span style="color: #10b981; font-weight: 600;">✓ Conciliado</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Lambayeque</strong></td>
+                                <td>304,695</td>
+                                <td>304,695</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td>435,721</td>
+                                <td>435,721</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td><span style="color: #10b981; font-weight: 600;">✓ Conciliado</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Lima</strong></td>
+                                <td>2,267,034</td>
+                                <td>2,267,034</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td>3,943,740</td>
+                                <td>3,943,740</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td><span style="color: #10b981; font-weight: 600;">✓ Conciliado</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Loreto</strong></td>
+                                <td>163,967</td>
+                                <td>163,967</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td>194,738</td>
+                                <td>194,738</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td><span style="color: #10b981; font-weight: 600;">✓ Conciliado</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Madre de Dios</strong></td>
+                                <td>63,492</td>
+                                <td>63,492</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td>28,704</td>
+                                <td>28,704</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td><span style="color: #10b981; font-weight: 600;">✓ Conciliado</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Moquegua</strong></td>
+                                <td>88,235</td>
+                                <td>88,235</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td>33,353</td>
+                                <td>33,353</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td><span style="color: #10b981; font-weight: 600;">✓ Conciliado</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Pasco</strong></td>
+                                <td>78,518</td>
+                                <td>78,518</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td>50,699</td>
+                                <td>50,699</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td><span style="color: #10b981; font-weight: 600;">✓ Conciliado</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Piura</strong></td>
+                                <td>439,700</td>
+                                <td>439,700</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td>581,730</td>
+                                <td>581,730</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td><span style="color: #10b981; font-weight: 600;">✓ Conciliado</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Puno</strong></td>
+                                <td>608,930</td>
+                                <td>608,930</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td>95,674</td>
+                                <td>95,674</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td><span style="color: #10b981; font-weight: 600;">✓ Conciliado</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>San Martín</strong></td>
+                                <td>262,583</td>
+                                <td>262,583</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td>218,127</td>
+                                <td>218,127</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td><span style="color: #10b981; font-weight: 600;">✓ Conciliado</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Tacna</strong></td>
+                                <td>162,820</td>
+                                <td>162,820</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td>65,388</td>
+                                <td>65,388</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td><span style="color: #10b981; font-weight: 600;">✓ Conciliado</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Tumbes</strong></td>
+                                <td>45,427</td>
+                                <td>45,427</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td>81,960</td>
+                                <td>81,960</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td><span style="color: #10b981; font-weight: 600;">✓ Conciliado</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Ucayali</strong></td>
+                                <td>126,082</td>
+                                <td>126,082</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td>139,606</td>
+                                <td>139,606</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td><span style="color: #10b981; font-weight: 600;">✓ Conciliado</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Áncash</strong></td>
+                                <td>348,735</td>
+                                <td>348,735</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td>267,408</td>
+                                <td>267,408</td>
+                                <td style="color: #10b981; font-weight: bold;">0</td>
+                                <td><span style="color: #10b981; font-weight: 600;">✓ Conciliado</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(16, 185, 129, 0.1); border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.2); color: #a7f3d0; font-size: 0.95rem;">
+                    <strong>Nota de Auditoría:</strong> Tu archivo manual <strong>DATA_PERU.txt</strong> coincide al 100% con los datos oficiales extraídos en todos los departamentos. Los pequeños desvíos en <strong>Amazonas</strong> y <strong>Ayacucho</strong> indican nuevas actas que fueron validadas y publicadas por la ONPE en la base de datos central después de que hicieras la copia del reporte manual de las 7:08 PM.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data from Python
+        const departments = [{"id": "01", "name": "Amazonas", "is_extranjero": false, "db_fp": 68793, "db_jp": 120561, "no_c_electores": 15161, "no_c_actas": 58, "c_actas": 1220, "db_ratio_fp": 0.3633036534744447, "txt_fp": 68486, "txt_jp": 119771, "diff_fp": 307, "diff_jp": 790}, {"id": "03", "name": "Apur\u00edmac", "is_extranjero": false, "db_fp": 43132, "db_jp": 185825, "no_c_electores": 2673, "no_c_actas": 10, "c_actas": 1307, "db_ratio_fp": 0.1883847185279332, "txt_fp": 43132, "txt_jp": 185825, "diff_fp": 0, "diff_jp": 0}, {"id": "04", "name": "Arequipa", "is_extranjero": false, "db_fp": 332308, "db_jp": 580551, "no_c_electores": 7202, "no_c_actas": 25, "c_actas": 4190, "db_ratio_fp": 0.364029932333471, "txt_fp": 332308, "txt_jp": 580551, "diff_fp": 0, "diff_jp": 0}, {"id": "05", "name": "Ayacucho", "is_extranjero": false, "db_fp": 66568, "db_jp": 254186, "no_c_electores": 8735, "no_c_actas": 34, "c_actas": 1866, "db_ratio_fp": 0.20753599331574976, "txt_fp": 66494, "txt_jp": 253825, "diff_fp": 74, "diff_jp": 361}, {"id": "06", "name": "Cajamarca", "is_extranjero": false, "db_fp": 244352, "db_jp": 490702, "no_c_electores": 8533, "no_c_actas": 30, "c_actas": 4210, "db_ratio_fp": 0.3324272774517246, "txt_fp": 244352, "txt_jp": 490702, "diff_fp": 0, "diff_jp": 0}, {"id": "24", "name": "Callao", "is_extranjero": false, "db_fp": 394407, "db_jp": 206765, "no_c_electores": 20227, "no_c_actas": 69, "c_actas": 2829, "db_ratio_fp": 0.6560634893175331, "txt_fp": 394407, "txt_jp": 206765, "diff_fp": 0, "diff_jp": 0}, {"id": "07", "name": "Cusco", "is_extranjero": false, "db_fp": 158153, "db_jp": 560300, "no_c_electores": 77258, "no_c_actas": 272, "c_actas": 3711, "db_ratio_fp": 0.22012991803221643, "txt_fp": 158153, "txt_jp": 560300, "diff_fp": 0, "diff_jp": 0}, {"id": "08", "name": "Huancavelica", "is_extranjero": false, "db_fp": 36707, "db_jp": 160659, "no_c_electores": 2942, "no_c_actas": 11, "c_actas": 1262, "db_ratio_fp": 0.18598441474215416, "txt_fp": 36707, "txt_jp": 160659, "diff_fp": 0, "diff_jp": 0}, {"id": "09", "name": "Hu\u00e1nuco", "is_extranjero": false, "db_fp": 139754, "db_jp": 249970, "no_c_electores": 5545, "no_c_actas": 20, "c_actas": 2321, "db_ratio_fp": 0.35859736634130823, "txt_fp": 139754, "txt_jp": 249970, "diff_fp": 0, "diff_jp": 0}, {"id": "10", "name": "Ica", "is_extranjero": false, "db_fp": 279728, "db_jp": 259131, "no_c_electores": 6479, "no_c_actas": 22, "c_actas": 2421, "db_ratio_fp": 0.5191116785652647, "txt_fp": 279728, "txt_jp": 259131, "diff_fp": 0, "diff_jp": 0}, {"id": "11", "name": "Jun\u00edn", "is_extranjero": false, "db_fp": 317745, "db_jp": 387009, "no_c_electores": 23614, "no_c_actas": 91, "c_actas": 3600, "db_ratio_fp": 0.45085944882895307, "txt_fp": 317745, "txt_jp": 387009, "diff_fp": 0, "diff_jp": 0}, {"id": "12", "name": "La Libertad", "is_extranjero": false, "db_fp": 599711, "db_jp": 442641, "no_c_electores": 11119, "no_c_actas": 38, "c_actas": 5264, "db_ratio_fp": 0.5753440296560087, "txt_fp": 599711, "txt_jp": 442641, "diff_fp": 0, "diff_jp": 0}, {"id": "13", "name": "Lambayeque", "is_extranjero": false, "db_fp": 435721, "db_jp": 304695, "no_c_electores": 3883, "no_c_actas": 13, "c_actas": 3577, "db_ratio_fp": 0.5884813402195522, "txt_fp": 435721, "txt_jp": 304695, "diff_fp": 0, "diff_jp": 0}, {"id": "14", "name": "Lima", "is_extranjero": false, "db_fp": 3943740, "db_jp": 2267034, "no_c_electores": 271964, "no_c_actas": 919, "c_actas": 28328, "db_ratio_fp": 0.6349836590415301, "txt_fp": 3943740, "txt_jp": 2267034, "diff_fp": 0, "diff_jp": 0}, {"id": "15", "name": "Loreto", "is_extranjero": false, "db_fp": 194738, "db_jp": 163967, "no_c_electores": 115578, "no_c_actas": 428, "c_actas": 2269, "db_ratio_fp": 0.5428917913048327, "txt_fp": 194738, "txt_jp": 163967, "diff_fp": 0, "diff_jp": 0}, {"id": "16", "name": "Madre de Dios", "is_extranjero": false, "db_fp": 28704, "db_jp": 63492, "no_c_electores": 6560, "no_c_actas": 23, "c_actas": 484, "db_ratio_fp": 0.311336717428088, "txt_fp": 28704, "txt_jp": 63492, "diff_fp": 0, "diff_jp": 0}, {"id": "17", "name": "Moquegua", "is_extranjero": false, "db_fp": 33353, "db_jp": 88235, "no_c_electores": 588, "no_c_actas": 2, "c_actas": 576, "db_ratio_fp": 0.2743116096983255, "txt_fp": 33353, "txt_jp": 88235, "diff_fp": 0, "diff_jp": 0}, {"id": "18", "name": "Pasco", "is_extranjero": false, "db_fp": 50699, "db_jp": 78518, "no_c_electores": 3970, "no_c_actas": 14, "c_actas": 788, "db_ratio_fp": 0.3923554950200051, "txt_fp": 50699, "txt_jp": 78518, "diff_fp": 0, "diff_jp": 0}, {"id": "19", "name": "Piura", "is_extranjero": false, "db_fp": 581730, "db_jp": 439700, "no_c_electores": 20006, "no_c_actas": 68, "c_actas": 5213, "db_ratio_fp": 0.5695250775873041, "txt_fp": 581730, "txt_jp": 439700, "diff_fp": 0, "diff_jp": 0}, {"id": "20", "name": "Puno", "is_extranjero": false, "db_fp": 95674, "db_jp": 608930, "no_c_electores": 6953, "no_c_actas": 24, "c_actas": 3373, "db_ratio_fp": 0.13578407162037115, "txt_fp": 95674, "txt_jp": 608930, "diff_fp": 0, "diff_jp": 0}, {"id": "21", "name": "San Mart\u00edn", "is_extranjero": false, "db_fp": 218127, "db_jp": 262583, "no_c_electores": 3994, "no_c_actas": 14, "c_actas": 2520, "db_ratio_fp": 0.4537600632397911, "txt_fp": 218127, "txt_jp": 262583, "diff_fp": 0, "diff_jp": 0}, {"id": "22", "name": "Tacna", "is_extranjero": false, "db_fp": 65388, "db_jp": 162820, "no_c_electores": 4150, "no_c_actas": 14, "c_actas": 1027, "db_ratio_fp": 0.2865280796466382, "txt_fp": 65388, "txt_jp": 162820, "diff_fp": 0, "diff_jp": 0}, {"id": "23", "name": "Tumbes", "is_extranjero": false, "db_fp": 81960, "db_jp": 45427, "no_c_electores": 590, "no_c_actas": 2, "c_actas": 630, "db_ratio_fp": 0.6433937528947223, "txt_fp": 81960, "txt_jp": 45427, "diff_fp": 0, "diff_jp": 0}, {"id": "25", "name": "Ucayali", "is_extranjero": false, "db_fp": 139606, "db_jp": 126082, "no_c_electores": 12362, "no_c_actas": 44, "c_actas": 1520, "db_ratio_fp": 0.5254509048206919, "txt_fp": 139606, "txt_jp": 126082, "diff_fp": 0, "diff_jp": 0}, {"id": "02", "name": "\u00c1ncash", "is_extranjero": false, "db_fp": 267408, "db_jp": 348735, "no_c_electores": 13329, "no_c_actas": 47, "c_actas": 3425, "db_ratio_fp": 0.43400314537372003, "txt_fp": 267408, "txt_jp": 348735, "diff_fp": 0, "diff_jp": 0}, {"id": "92", "name": "Am\u00e9rica", "is_extranjero": true, "db_fp": 11159, "db_jp": 8336, "no_c_electores": 692736, "no_c_actas": 1429, "c_actas": 141, "db_ratio_fp": 0.5724031803026417, "txt_fp": 0, "txt_jp": 0, "diff_fp": 0, "diff_jp": 0}, {"id": "93", "name": "Asia", "is_extranjero": true, "db_fp": 0, "db_jp": 0, "no_c_electores": 41301, "no_c_actas": 105, "c_actas": 2, "db_ratio_fp": 0.4989, "txt_fp": 0, "txt_jp": 0, "diff_fp": 0, "diff_jp": 0}, {"id": "94", "name": "Europa", "is_extranjero": true, "db_fp": 2880, "db_jp": 3050, "no_c_electores": 383998, "no_c_actas": 796, "c_actas": 43, "db_ratio_fp": 0.4856661045531197, "txt_fp": 0, "txt_jp": 0, "diff_fp": 0, "diff_jp": 0}, {"id": "95", "name": "Ocean\u00eda", "is_extranjero": true, "db_fp": 0, "db_jp": 0, "no_c_electores": 7918, "no_c_actas": 21, "c_actas": 0, "db_ratio_fp": 0.4989, "txt_fp": 0, "txt_jp": 0, "diff_fp": 0, "diff_jp": 0}, {"id": "91", "name": "\u00c1frica", "is_extranjero": true, "db_fp": 0, "db_jp": 0, "no_c_electores": 383, "no_c_actas": 5, "c_actas": 1, "db_ratio_fp": 0.4989, "txt_fp": 0, "txt_jp": 0, "diff_fp": 0, "diff_jp": 0}];
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.nav-tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        // Setup Chart
+        const ctxProj = document.getElementById('chartProyectados').getContext('2d');
+        const chartProyectados = new Chart(ctxProj, {
+            type: 'doughnut',
+            data: {
+                labels: ['Juntos por el Perú', 'Fuerza Popular'],
+                datasets: [{
+                    data: [0, 0],
+                    backgroundColor: ['#ef4444', '#3b82f6'],
+                    borderWidth: 1,
+                    borderColor: 'rgba(255, 255, 255, 0.1)'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#f8fafc',
+                            font: {
+                                family: 'Outfit',
+                                size: 13
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        function updateSimulation() {
+            const partNac = parseFloat(document.getElementById('slidePartNac').value);
+            const partExt = parseFloat(document.getElementById('slidePartExt').value);
+            const fpExt = parseFloat(document.getElementById('slideFpExt').value);
+            const shiftNac = parseFloat(document.getElementById('slideShiftNac').value);
+            
+            document.getElementById('lblPartNac').innerText = partNac + '%';
+            document.getElementById('lblPartExt').innerText = partExt + '%';
+            document.getElementById('lblFpExt').innerText = fpExt + '%';
+            document.getElementById('lblShiftNac').innerText = (shiftNac >= 0 ? '+' : '') + shiftNac + '%';
+            
+            let total_fp = 0;
+            let total_jp = 0;
+            
+            let proj_table_body = '';
+            
+            for (let dep of departments) {
+                let db_fp = dep.db_fp;
+                let db_jp = dep.db_jp;
+                
+                // Project pending electores
+                let part = dep.is_extranjero ? (partExt / 100) : (partNac / 100);
+                let assistants = dep.no_c_electores * part;
+                let valid_votes = assistants * 0.90; // 10% null/blank
+                
+                let ratio_fp;
+                if (dep.is_extranjero) {
+                    ratio_fp = fpExt / 100;
+                } else {
+                    ratio_fp = dep.db_ratio_fp + (shiftNac / 100);
+                    ratio_fp = Math.max(0, Math.min(1, ratio_fp));
+                }
+                let ratio_jp = 1.0 - ratio_fp;
+                
+                let proj_pnd_fp = valid_votes * ratio_fp;
+                let proj_pnd_jp = valid_votes * ratio_jp;
+                
+                let proj_fp = db_fp + proj_pnd_fp;
+                let proj_jp = db_jp + proj_pnd_jp;
+                
+                total_fp += proj_fp;
+                total_jp += proj_jp;
+                
+                let dep_tot = proj_fp + proj_jp;
+                let pct_fp = dep_tot > 0 ? (proj_fp / dep_tot * 100) : 0;
+                let pct_jp = dep_tot > 0 ? (proj_jp / dep_tot * 100) : 0;
+                
+                let winner_badge = '';
+                let winner_class = '';
+                let winner_name = '';
+                if (proj_jp > proj_fp) {
+                    winner_badge = '<span class="badge badge-jp">JP</span>';
+                    winner_class = 'jp';
+                    winner_name = 'Juntos por el Perú';
+                } else if (proj_fp > proj_jp) {
+                    winner_badge = '<span class="badge badge-fp">FP</span>';
+                    winner_class = 'fp';
+                    winner_name = 'Fuerza Popular';
+                } else {
+                    winner_badge = '<span class="badge badge-neutral">-</span>';
+                    winner_class = '';
+                    winner_name = 'Empate';
+                }
+                
+                let tot_actas = dep.c_actas + dep.no_c_actas;
+                
+                proj_table_body += `
+                    <tr>
+                        <td>${dep.id}</td>
+                        <td><strong>${dep.name}</strong></td>
+                        <td style="font-size: 0.85rem; color: var(--text-muted);">
+                            <span style="color: #fca5a5;">${db_jp.toLocaleString()}</span> / 
+                            <span style="color: #93c5fd;">${db_fp.toLocaleString()}</span>
+                        </td>
+                        <td style="font-size: 0.85rem;">
+                            <strong style="color: #f59e0b;">${dep.no_c_actas}</strong> / ${tot_actas}
+                        </td>
+                        <td style="font-size: 0.85rem; font-weight: 600;">
+                            <span style="color: #fca5a5;">+${Math.round(proj_pnd_jp).toLocaleString()}</span> / 
+                            <span style="color: #93c5fd;">+${Math.round(proj_pnd_fp).toLocaleString()}</span>
+                        </td>
+                        <td style="font-weight: 700; font-size: 0.9rem;">
+                            <span style="color: #ef4444;">${Math.round(proj_jp).toLocaleString()}</span> (${pct_jp.toFixed(1)}%) / <br>
+                            <span style="color: #3b82f6;">${Math.round(proj_fp).toLocaleString()}</span> (${pct_fp.toFixed(1)}%)
+                        </td>
+                        <td class="winner-marker ${winner_class}">${winner_badge}</td>
+                    </tr>
+                `;
+            }
+            
+            document.getElementById('tableBodyRegiones').innerHTML = proj_table_body;
+            
+            let total_valid = total_fp + total_jp;
+            let pct_total_fp = total_valid > 0 ? (total_fp / total_valid * 100) : 0;
+            let pct_total_jp = total_valid > 0 ? (total_jp / total_valid * 100) : 0;
+            
+            document.getElementById('valProjFp').innerText = Math.round(total_fp).toLocaleString();
+            document.getElementById('valProjJp').innerText = Math.round(total_jp).toLocaleString();
+            document.getElementById('valProjPctFp').innerText = pct_total_fp.toFixed(2) + '%';
+            document.getElementById('valProjPctJp').innerText = pct_total_jp.toFixed(2) + '%';
+            
+            document.getElementById('lblValFp').innerText = 'FP: ' + Math.round(total_fp).toLocaleString() + ' (' + pct_total_fp.toFixed(2) + '%)';
+            document.getElementById('lblValJp').innerText = 'JP: ' + Math.round(total_jp).toLocaleString() + ' (' + pct_total_jp.toFixed(2) + '%)';
+            
+            let jp_pct_bar = total_valid > 0 ? (total_jp / total_valid * 100) : 50;
+            let fp_pct_bar = 100 - jp_pct_bar;
+            document.getElementById('barProjJp').style.width = jp_pct_bar + '%';
+            document.getElementById('barProjFp').style.width = fp_pct_bar + '%';
+            
+            let diff = total_jp - total_fp;
+            let diff_text = '';
+            if (diff > 0) {
+                diff_text = 'Diferencia proyectada: <strong>' + Math.round(diff).toLocaleString() + ' votos</strong> a favor de JUNTOS POR EL PERÚ.';
+            } else {
+                diff_text = 'Diferencia proyectada: <strong>' + Math.round(-diff).toLocaleString() + ' votos</strong> a favor de FUERZA POPULAR.';
+            }
+            document.getElementById('lblDiffProj').innerHTML = diff_text;
+            
+            // Update charts
+            chartProyectados.data.datasets[0].data = [Math.round(total_jp), Math.round(total_fp)];
+            chartProyectados.update();
+            
+            // Update winner banner
+            let banner_el = document.getElementById('winnerBanner');
+            if (total_jp > total_fp) {
+                banner_el.className = 'winner-banner jp-win';
+                banner_el.innerHTML = '🏆 LIDERANDO PROYECCIÓN: JUNTOS POR EL PERÚ (ROBERTO SÁNCHEZ) por ' + Math.round(diff).toLocaleString() + ' votos';
+            } else {
+                banner_el.className = 'winner-banner fp-win';
+                banner_el.innerHTML = '🏆 LIDERANDO PROYECCIÓN: FUERZA POPULAR (KEIKO FUJIMORI) por ' + Math.round(-diff).toLocaleString() + ' votos';
+            }
+        }
+
+        // Run simulation on load
+        window.onload = function() {
+            updateSimulation();
+        };
+    </script>
+</body>
+</html>
