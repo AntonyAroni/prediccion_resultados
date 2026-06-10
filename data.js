@@ -1,9 +1,9 @@
 const metadata = {
-  "contabilizadas_mesas": 90476,
-  "pendientes_mesas": 2290,
-  "pendientes_escrutinio_mesas": 684,
-  "enviadas_jee_mesas": 1606,
-  "pct_contabilizado": 97.53142315072333
+  "contabilizadas_mesas": 90731,
+  "pendientes_mesas": 2035,
+  "pendientes_escrutinio_mesas": 424,
+  "enviadas_jee_mesas": 1611,
+  "pct_contabilizado": 97.80630834573012
 };
 const departments = [
   {
@@ -85,16 +85,16 @@ const departments = [
     "id": "24",
     "name": "Callao",
     "is_extranjero": false,
-    "db_fp": 394407,
-    "db_jp": 206765,
-    "no_c_electores": 20227,
-    "no_c_actas": 69,
-    "c_actas": 2829,
-    "db_ratio_fp": 0.6560634893175331,
+    "db_fp": 394631,
+    "db_jp": 206963,
+    "no_c_electores": 19663,
+    "no_c_actas": 67,
+    "c_actas": 2831,
+    "db_ratio_fp": 0.6559756247568959,
     "txt_fp": 394407,
     "txt_jp": 206765,
-    "diff_fp": 0,
-    "diff_jp": 0
+    "diff_fp": 224,
+    "diff_jp": 198
   },
   {
     "id": "07",
@@ -220,16 +220,16 @@ const departments = [
     "id": "15",
     "name": "Loreto",
     "is_extranjero": false,
-    "db_fp": 209688,
-    "db_jp": 182034,
-    "no_c_electores": 30977,
-    "no_c_actas": 116,
-    "c_actas": 2581,
-    "db_ratio_fp": 0.5352979919432659,
+    "db_fp": 209711,
+    "db_jp": 182563,
+    "no_c_electores": 28673,
+    "no_c_actas": 108,
+    "c_actas": 2589,
+    "db_ratio_fp": 0.5346033639751806,
     "txt_fp": 194738,
     "txt_jp": 163967,
-    "diff_fp": 14950,
-    "diff_jp": 18067
+    "diff_fp": 14973,
+    "diff_jp": 18596
   },
   {
     "id": "16",
@@ -385,12 +385,12 @@ const departments = [
     "id": "92",
     "name": "Am\u00e9rica",
     "is_extranjero": true,
-    "db_fp": 80192,
-    "db_jp": 40606,
-    "no_c_electores": 267810,
-    "no_c_actas": 547,
-    "c_actas": 1023,
-    "db_ratio_fp": 0.6638520505306379,
+    "db_fp": 96421,
+    "db_jp": 46049,
+    "no_c_electores": 148716,
+    "no_c_actas": 302,
+    "c_actas": 1268,
+    "db_ratio_fp": 0.6767810767179055,
     "txt_fp": 0,
     "txt_jp": 0,
     "diff_fp": 0,
